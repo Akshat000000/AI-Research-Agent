@@ -1,0 +1,10 @@
+streamlit
+langgraph
+langchain-google-genai
+langchain-tavily
+tavily-python
+python-dotenv
+fastapi
+uvicorn
+requests
+tenacity
