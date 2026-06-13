@@ -13,3 +13,9 @@ venv/
 # IDE
 .vscode/
 .idea/
+
+# ChromaDB vector database
+data/
+
+# Debug logs
+debug_streamlit.log

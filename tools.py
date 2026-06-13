@@ -3,6 +3,7 @@ tools.py — Defines the tools (abilities) available to the AI Research Agent.
 
 Currently provides:
 - Web search via Tavily Search API with timeout and retry logic
+- Local document search via ChromaDB vector database
 """
 
 import os
@@ -24,6 +25,10 @@ _tavily_search = TavilySearch(max_results=5)
 
 # Timeout for each individual Tavily search call (seconds)
 SEARCH_TIMEOUT = 25
+
+# ── ChromaDB Configuration ───────────────────────────────────────────────────
+CHROMA_DB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "chroma_db")
+COLLECTION_NAME = "local_documents"
 
 
 @tool
@@ -62,5 +67,52 @@ def web_search(query: str) -> str:
             return f"Error executing search: {str(e)}"
 
 
+@tool
+def search_local_documents(query: str) -> str:
+    """Search through locally indexed documents (PDFs, text files, markdown) stored in the ChromaDB vector database.
+    Use this tool when the user asks about content from their own files, internal documents, or custom knowledge base."""
+    try:
+        # Lazy imports to avoid loading ChromaDB if the tool is never called
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings
+        from langchain_chroma import Chroma
+
+        # Check if the database directory exists
+        if not os.path.exists(CHROMA_DB_DIR):
+            return (
+                "No local document index found. "
+                "Please run 'python index_docs.py' to index your documents first."
+            )
+
+        # Connect to the persistent ChromaDB store
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
+        vector_store = Chroma(
+            persist_directory=CHROMA_DB_DIR,
+            embedding_function=embeddings,
+            collection_name=COLLECTION_NAME,
+        )
+
+        # Perform similarity search — return top 4 most relevant chunks
+        results = vector_store.similarity_search_with_relevance_scores(query, k=4)
+
+        if not results:
+            return "No relevant information found in the local documents for this query."
+
+        # Format results with source citations
+        formatted_results = []
+        for i, (doc, score) in enumerate(results, 1):
+            source = doc.metadata.get("source", "unknown")
+            formatted_results.append(
+                f"--- Result {i} (relevance: {score:.2f}) ---\n"
+                f"Source: {source}\n"
+                f"Content:\n{doc.page_content}\n"
+            )
+
+        return "\n".join(formatted_results)
+
+    except Exception as e:
+        return f"Error searching local documents: {str(e)}"
+
+
 # Bundle all tools into a list for the agent to use.
-tools = [web_search]
+tools = [web_search, search_local_documents]
+

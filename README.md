@@ -1,8 +1,8 @@
 # 🔍 AI Research Agent
 
-An autonomous AI Research Agent that searches the web, analyzes multiple sources, and delivers comprehensive, well-cited answers to any research question.
+An autonomous AI Research Agent that searches the web, analyzes local documents, and delivers comprehensive, well-cited answers to any research question.
 
-Built with **Google Gemini**, **LangGraph**, **Tavily Search**, **FastAPI**, and **Streamlit**.
+Built with **Google Gemini**, **LangGraph**, **ChromaDB**, **Tavily Search**, **FastAPI**, and **Streamlit**.
 
 ---
 
@@ -14,11 +14,13 @@ This project is a powerful example of both **Generative AI (GenAI)** and **Agent
 
 ## 🛠️ The Brain and The Hands
 
-To understand how this Agent works, think of the **LLM (Gemini) as a Manager**, and **Tavily Search as a Researcher**:
+To understand how this Agent works, think of the **LLM (Gemini) as a Manager**, and **Tavily / ChromaDB as Researchers**:
 
-1. **The LLM (Gemini) does NOT browse the web directly.** It acts as the brain. When you ask a question, the LLM decides *if* a search is needed and formulates the perfect search query.
-2. **Tavily acts as the Researcher.** It is a specialized Search Engine and API built for AI Agents. It's not just a web browser; it intelligently scrapes, filters, and extracts factual text from the web.
-3. **The Synthesis:** Tavily brings back the raw data to the LLM. The LLM reads all the sources, cross-checks the facts, and synthesizes a polished, final report with citations for you.
+1. **The LLM (Gemini) does NOT browse directly.** It acts as the brain. When you ask a question, the LLM decides *if* it should search the web, search your local documents, or both.
+2. **The Researchers:** 
+   - **Tavily** intelligently scrapes and extracts factual text from the web.
+   - **ChromaDB** is a local vector database that holds your private PDFs, text files, and markdown notes.
+3. **The Synthesis:** The tools bring back raw data to the LLM. The LLM reads all the sources, cross-checks the facts, and synthesizes a polished, final report with citations for you.
 
 ---
 
@@ -35,7 +37,7 @@ User asks a question (Streamlit UI)
         ↓
    Agent (Gemini) reads the question and decides what to search
         ↓
-   Tavily searches the web and returns results
+   Tavily searches the web AND/OR ChromaDB searches local files
         ↓
    Agent reads the results — needs more info? → searches again
                            — has enough?      → writes final answer
@@ -67,10 +69,11 @@ User asks a question (Streamlit UI)
 ```
 
 **Project Files:**
-*   `tools.py`: Defines the Agent's abilities (specifically the Tavily web search tool).
-*   `agent.py`: Contains the LangGraph state machine, defining how Gemini interacts with tools in a loop.
+*   `tools.py`: Defines the Agent's abilities (Tavily web search and ChromaDB local document search).
+*   `index_docs.py`: CLI script to ingest and embed your local `.txt`, `.md`, and `.pdf` files into ChromaDB.
+*   `agent.py`: Contains the LangGraph state machine, defining how Gemini interacts with tools.
 *   `api.py`: The FastAPI backend that exposes the `/research` endpoint.
-*   `app.py`: The Streamlit frontend that provides a clean UI and calls the FastAPI backend via HTTP.
+*   `app.py`: The Streamlit frontend providing the chat UI.
 
 ---
 
@@ -94,7 +97,16 @@ GOOGLE_API_KEY=your_actual_gemini_key
 TAVILY_API_KEY=your_actual_tavily_key
 ```
 
-### 4. Run the Application
+### 4. Index Local Documents (Optional)
+If you want the agent to answer questions based on your own files:
+1. Place `.txt`, `.md`, or `.pdf` files in the `documents/` folder.
+2. Run the indexer to store them in your local ChromaDB vector database:
+```bash
+python index_docs.py
+```
+*(To clear the database and start over, run `python index_docs.py --reset`)*
+
+### 5. Run the Application
 You will need to run the backend and frontend in two separate terminal windows.
 
 **Terminal 1 — Start the Backend:**
@@ -127,8 +139,9 @@ The FastAPI backend provides the following endpoints:
 
 | Technology | Purpose |
 |---|---|
-| **Google Gemini 2.0 Flash** | The core LLM for reasoning, planning, tool usage, and answer generation. |
+| **Google Gemini 2.5 Flash** | The core LLM for reasoning, planning, tool usage, and answer generation. |
 | **LangGraph** | The state machine framework that manages the autonomous agent loop and memory. |
+| **ChromaDB** | An embedded local vector database for storing and searching private document embeddings (Local RAG). |
 | **Tavily Search API** | An AI-optimized search engine that scrapes and extracts relevant web data. |
 | **FastAPI** | A modern, fast web framework for building the backend REST API. |
 | **Streamlit** | A rapid-development framework for building the interactive chat UI. |

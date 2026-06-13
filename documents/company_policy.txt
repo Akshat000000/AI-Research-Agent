@@ -1,0 +1,22 @@
+This is a sample document for testing the Local Document RAG feature.
+
+# Antigravity Research Labs — Company Policy
+
+## Remote Work Policy
+Antigravity Research Labs allows all employees to work remotely from any location worldwide.
+Employees may work from any altitude, including mountain tops, airplanes, and space stations.
+The only requirement is a stable internet connection for team meetings.
+
+## Vacation Policy
+All employees receive 30 days of paid vacation per year.
+Unused vacation days roll over to the next year, up to a maximum of 45 days.
+
+## Technology Stack
+The engineering team primarily uses Python, LangChain, and Google Gemini for AI projects.
+All code must be reviewed by at least two team members before merging.
+The company uses ChromaDB for internal vector search applications.
+
+## Office Locations
+- Headquarters: San Francisco, California
+- European Office: Berlin, Germany
+- Asia-Pacific Office: Tokyo, Japan

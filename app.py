@@ -130,14 +130,24 @@ if user_input := st.chat_input("Enter your research topic..."):
                 # Display intermediate steps
                 for step in result["steps"]:
                     if step["type"] == "tool_call":
-                        st.write(f"🔎 **Searching the web:** `{step['query']}`")
+                        if step["tool"] == "search_local_documents":
+                            st.write(f"📂 **Searching local documents:** `{step['query']}`")
+                        else:
+                            st.write(f"🔎 **Searching the web:** `{step['query']}`")
                     elif step["type"] == "tool_result":
                         st.write(f"📄 **Found results** — analyzing content...")
 
                 # Update status when done
-                num_searches = sum(1 for s in result["steps"] if s["type"] == "tool_call")
+                num_web = sum(1 for s in result["steps"] if s["type"] == "tool_call" and s.get("tool") == "web_search")
+                num_local = sum(1 for s in result["steps"] if s["type"] == "tool_call" and s.get("tool") == "search_local_documents")
+                parts = []
+                if num_web:
+                    parts.append(f"{num_web} web search(es)")
+                if num_local:
+                    parts.append(f"{num_local} local doc search(es)")
+                summary = " and ".join(parts) if parts else "no searches needed"
                 status.update(
-                    label=f"✅ Research complete — {num_searches} web search(es) performed",
+                    label=f"✅ Research complete — {summary}",
                     state="complete",
                     expanded=False,
                 )

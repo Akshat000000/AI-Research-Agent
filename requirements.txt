@@ -8,3 +8,6 @@ fastapi
 uvicorn
 requests
 tenacity
+chromadb
+langchain-chroma
+pypdf
